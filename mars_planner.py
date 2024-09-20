@@ -1,8 +1,7 @@
 from copy import deepcopy
 from symbol import and_expr
 
-from search_algorithms import breadth_first_search, depth_first_search, depth_limited_search, a_star, straight_line_distance
-
+from search_algorithms import breadth_first_search, depth_first_search, depth_limited_search
 
 ## actions:
 ## pick up tool
