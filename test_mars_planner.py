@@ -9,8 +9,8 @@ class TestRoverState(TestCase):
 class Test(TestCase):
     def test_move_to_sample(self):
         s = RoverState(loc="battery")
-        move_to_sample(s)
-        self.assertEqual(s.loc, "sample")
+        new_state = move_to_sample(s)
+        self.assertEqual(new_state.loc, "sample")
 
     def test_eq(self):
         s = RoverState(loc="battery")

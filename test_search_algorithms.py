@@ -1,6 +1,6 @@
 from unittest import TestCase
 from mars_planner import *
-from romania_state import *
+# from romania_state import *
 from search_algorithms import *
 
 
