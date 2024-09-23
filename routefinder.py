@@ -51,13 +51,15 @@ class Graph:
     def __repr__(self):
         return str(self.adjacency_list)
 
-
+## Uses sld as heuristic
 def a_star(start_state, heuristic_fn, goal_test, use_closed_list=True):
     search_queue = PriorityQueue()
     closed_list = {}  # To store the best g values for each location
+    states_generated = 0  # Counter for generated states
 
     # Add the start state to the queue
     search_queue.put((start_state.f, start_state))  # (f, state) - priority queue uses f
+    states_generated += 1  # Increment counter when the start state is added
 
     while not search_queue.empty():
         # Get the state with the lowest f value
@@ -70,7 +72,7 @@ def a_star(start_state, heuristic_fn, goal_test, use_closed_list=True):
             while current_state:
                 path.append(current_state)
                 current_state = current_state.prev_state
-            return path[::-1]  # Return the path from start to goal
+            return path[::-1], states_generated  # Return the path from start to goal and the number of states generated
 
         # If using closed list, add the current state to it
         if use_closed_list:
@@ -91,9 +93,58 @@ def a_star(start_state, heuristic_fn, goal_test, use_closed_list=True):
 
             # Add the neighbor to the search queue
             search_queue.put((neighbor_state.f, neighbor_state))
+            states_generated += 1  # Increment counter when a neighbor state is added
 
     # If the search queue is empty and no goal found
-    return None
+    return None, states_generated
+
+
+## Uses h1 as heuristic_fn (for UCS)
+def ucs(start_state, heuristic_fn, goal_test, use_closed_list=True):
+    search_queue = PriorityQueue()
+    closed_list = {}  # To store the best g values for each location
+    state_counter = 0  # Counter for generated states
+
+    # Add the start state to the queue
+    search_queue.put((start_state.f, start_state))  # (f, state) - priority queue uses f
+    state_counter += 1  # Increment counter when the start state is added
+
+    while not search_queue.empty():
+        # Get the state with the lowest f value
+        current_f, current_state = search_queue.get()
+
+        # Check if the current state is the goal
+        if goal_test(current_state):
+            # Reconstruct path (by backtracking through prev_state)
+            path = []
+            while current_state:
+                path.append(current_state)
+                current_state = current_state.prev_state
+            return path[::-1], state_counter  # Return the path from start to goal and the number of states generated
+
+        # If using closed list, add the current state to it
+        if use_closed_list:
+            closed_list[current_state.location] = current_state.g
+
+        # Expand neighbors
+        for neighbor in current_state.mars_graph.get_neighbors(current_state.location):
+            # Create a new state for the neighbor
+            g_cost = current_state.g + 1  # Assuming all moves have a cost of 1
+            h_cost = heuristic_fn(map_state(location=neighbor))  # Heuristic from neighbor to goal
+            neighbor_state = map_state(location=neighbor, mars_graph=current_state.mars_graph,
+                                       prev_state=current_state, g=g_cost, h=h_cost)
+
+            # If using closed list, skip if this state has already been explored with a lower g
+            if use_closed_list and neighbor_state.location in closed_list and g_cost >= closed_list[
+                neighbor_state.location]:
+                continue
+
+            # Add the neighbor to the search queue
+            search_queue.put((neighbor_state.f, neighbor_state))
+            state_counter += 1  # Increment counter when a neighbor state is added
+
+    # If the search queue is empty and no goal found
+    return None, state_counter
 
 
 ## default heuristic - we can use this to implement uniform cost search
